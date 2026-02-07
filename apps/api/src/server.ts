@@ -1,4 +1,4 @@
-import './load-env';
+import './load-env.js';
 import http from 'node:http';
 import { createApp } from './app';
 import { env } from './env';
