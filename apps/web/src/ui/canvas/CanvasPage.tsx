@@ -102,6 +102,22 @@ export function CanvasPage({ initialBoardId, onBoardLoaded, isNewBoard }: Canvas
 
   // Yjs shared state: canvas + zones snapshot (antes do socket effect)
   const yCanvas = useMemo(() => doc.getMap<any>('canvas'), [doc]);
+
+  // Carregar canvas da API ao abrir quadro (permite trabalhar em qualquer lugar)
+  useEffect(() => {
+    if (!token || !boardId || isNewBoard) return;
+    (async () => {
+      try {
+        const data = await api<{ canvas: any }>(`/boards/${boardId}/canvas`, { method: 'GET' }, token);
+        if (data?.canvas) {
+          yCanvas.set('json', data.canvas);
+          setRemoteCanvasJson(data.canvas);
+        }
+      } catch {
+        // Quadro pode não existir ou usuário sem acesso — ignora
+      }
+    })();
+  }, [token, boardId, isNewBoard, yCanvas]);
   const yZones = useMemo(() => doc.getArray<any>('zones'), [doc]);
 
   // Socket.IO: already established in App.tsx; for MVP we create a dedicated connection here using same token
@@ -140,8 +156,15 @@ export function CanvasPage({ initialBoardId, onBoardLoaded, isNewBoard }: Canvas
         if (typeof sent === 'number') setPingMs(Math.max(0, Date.now() - sent));
         s!.emit('client:pong');
       });
-      s.on('yjs:message', (data: number[] | undefined) => {
-        const payload = Array.isArray(data) && data.length > 0 ? Uint8Array.from(data) : new Uint8Array(0);
+      s.on('yjs:message', (data: number[] | Uint8Array | ArrayBuffer | undefined) => {
+        const payload =
+          Array.isArray(data) && data.length > 0
+            ? Uint8Array.from(data)
+            : data instanceof Uint8Array && data.length > 0
+              ? data
+              : data instanceof ArrayBuffer
+                ? new Uint8Array(data)
+                : new Uint8Array(0);
         const isSync = payload.length > 0 && payload[0] === 0;
         const reply = applyMessage(doc, awareness, payload);
         if (reply) s!.emit('yjs:message', { boardId, data: Array.from(reply) });
@@ -268,6 +291,14 @@ export function CanvasPage({ initialBoardId, onBoardLoaded, isNewBoard }: Canvas
     yCanvas.set('json', json);
   }
 
+  async function saveCanvasToApi(canvasJson: any) {
+    if (!token || !boardId) return;
+    await api(`/boards/${boardId}/canvas`, {
+      method: 'PUT',
+      body: JSON.stringify({ canvas: canvasJson }),
+    }, token);
+  }
+
   function onPointer(p: { x: number; y: number; zoneId?: string }) {
     awareness.setLocalStateField('cursor', { x: p.x, y: p.y, zoneId: selectedZoneId });
     const u = encodeAwarenessUpdate(awareness, [awareness.clientID]);
@@ -329,6 +360,7 @@ export function CanvasPage({ initialBoardId, onBoardLoaded, isNewBoard }: Canvas
           __onPointer={onPointer}
           __lockedObjectIds={lockedObjectIds.current}
           __isNewBoard={isNewBoard}
+          __onSaveToApi={boardId && token ? saveCanvasToApi : undefined}
         />
         <CursorsOverlay
           awareness={awarenessReady ? (awareness as any) : null}

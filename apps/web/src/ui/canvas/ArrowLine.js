@@ -77,9 +77,13 @@ export class ArrowLine extends fabric.Line {
         ctx.restore();
     }
     toObject(propertiesToInclude) {
-        const obj = super.toObject(propertiesToInclude ?? []);
+        const obj = super.toObject(['__fromId', '__toId', ...(propertiesToInclude ?? [])]);
         obj.arrowType = this.arrowType;
         obj.type = ArrowLine.type;
+        if (this.__fromId)
+            obj.__fromId = this.__fromId;
+        if (this.__toId)
+            obj.__toId = this.__toId;
         return obj;
     }
     static async fromObject(object) {

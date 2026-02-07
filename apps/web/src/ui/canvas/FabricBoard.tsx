@@ -25,6 +25,8 @@ type Props = {
   __lockedObjectIds?: Set<string>;
   /** Quadro recém-criado — iniciar em branco (sem loadDoc nem texto de seed) */
   __isNewBoard?: boolean;
+  /** Callback para salvar canvas na API (permite trabalhar em qualquer lugar) */
+  __onSaveToApi?: (canvasJson: any) => Promise<void>;
 };
 
 function nowISO() {
@@ -43,7 +45,7 @@ function isTextEditing(obj: fabric.Object | null): boolean {
   return false;
 }
 
-export function FabricBoard({ className, __onCanvas, __onZoneRect, __zones, __onCanvasJson, __applyRemoteJson, __onPointer, __lockedObjectIds, __isNewBoard }: Props) {
+export function FabricBoard({ className, __onCanvas, __onZoneRect, __zones, __onCanvasJson, __applyRemoteJson, __onPointer, __lockedObjectIds, __isNewBoard, __onSaveToApi }: Props) {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const canvasElRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -688,14 +690,16 @@ export function FabricBoard({ className, __onCanvas, __onZoneRect, __zones, __on
   async function doSaveNow() {
     const c = canvasRef.current;
     if (!c) return;
+    const canvasJson = c.toDatalessJSON();
     const doc: CanvasDocument = {
       version: 1,
       createdAt: docRef.current?.createdAt ?? nowISO(),
       updatedAt: nowISO(),
-      canvas: c.toDatalessJSON(),
+      canvas: canvasJson,
     };
     saveDoc(doc);
     docRef.current = doc;
+    if (__onSaveToApi) await __onSaveToApi(canvasJson);
   }
 
   async function doLoad() {

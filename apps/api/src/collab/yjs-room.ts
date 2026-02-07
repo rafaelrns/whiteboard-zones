@@ -23,6 +23,16 @@ export function encodeSyncStep1(doc: Y.Doc) {
   return encoding.toUint8Array(encoder);
 }
 
+/** Codifica SyncStep2 com estado completo do doc (para cliente novo que entra no quadro). */
+export function encodeSyncStep2(doc: Y.Doc) {
+  const encoder = encoding.createEncoder();
+  encoding.writeVarUint(encoder, 0); // messageType 0 = sync
+  // state vector vazio = cliente tem nada; envia todo o documento
+  const emptyStateVector = Y.encodeStateVector(new Y.Doc());
+  syncProtocol.writeSyncStep2(encoder, doc, emptyStateVector);
+  return encoding.toUint8Array(encoder);
+}
+
 export function handleMessage(room: YRoom, data: Uint8Array): Uint8Array | null {
   if (!data || data.length === 0) return null;
   try {

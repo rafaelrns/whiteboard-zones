@@ -82,6 +82,23 @@ export function CanvasPage({ initialBoardId, onBoardLoaded, isNewBoard } = {}) {
     }, [token, boardId]);
     // Yjs shared state: canvas + zones snapshot (antes do socket effect)
     const yCanvas = useMemo(() => doc.getMap('canvas'), [doc]);
+    // Carregar canvas da API ao abrir quadro (permite trabalhar em qualquer lugar)
+    useEffect(() => {
+        if (!token || !boardId || isNewBoard)
+            return;
+        (async () => {
+            try {
+                const data = await api(`/boards/${boardId}/canvas`, { method: 'GET' }, token);
+                if (data?.canvas) {
+                    yCanvas.set('json', data.canvas);
+                    setRemoteCanvasJson(data.canvas);
+                }
+            }
+            catch {
+                // Quadro pode não existir ou usuário sem acesso — ignora
+            }
+        })();
+    }, [token, boardId, isNewBoard, yCanvas]);
     const yZones = useMemo(() => doc.getArray('zones'), [doc]);
     // Socket.IO: already established in App.tsx; for MVP we create a dedicated connection here using same token
     // (Etapa 6: centralizar conexão em store)
@@ -120,7 +137,13 @@ export function CanvasPage({ initialBoardId, onBoardLoaded, isNewBoard } = {}) {
                 s.emit('client:pong');
             });
             s.on('yjs:message', (data) => {
-                const payload = Array.isArray(data) && data.length > 0 ? Uint8Array.from(data) : new Uint8Array(0);
+                const payload = Array.isArray(data) && data.length > 0
+                    ? Uint8Array.from(data)
+                    : data instanceof Uint8Array && data.length > 0
+                        ? data
+                        : data instanceof ArrayBuffer
+                            ? new Uint8Array(data)
+                            : new Uint8Array(0);
                 const isSync = payload.length > 0 && payload[0] === 0;
                 const reply = applyMessage(doc, awareness, payload);
                 if (reply)
@@ -241,6 +264,14 @@ export function CanvasPage({ initialBoardId, onBoardLoaded, isNewBoard } = {}) {
         // publish full JSON (MVP); in Etapa 7 vira deltas/CRDT por objeto
         yCanvas.set('json', json);
     }
+    async function saveCanvasToApi(canvasJson) {
+        if (!token || !boardId)
+            return;
+        await api(`/boards/${boardId}/canvas`, {
+            method: 'PUT',
+            body: JSON.stringify({ canvas: canvasJson }),
+        }, token);
+    }
     function onPointer(p) {
         awareness.setLocalStateField('cursor', { x: p.x, y: p.y, zoneId: selectedZoneId });
         const u = encodeAwarenessUpdate(awareness, [awareness.clientID]);
@@ -278,7 +309,7 @@ export function CanvasPage({ initialBoardId, onBoardLoaded, isNewBoard } = {}) {
         };
     }, [canvas, boardId]);
     const [pointerInsideQuadro, setPointerInsideQuadro] = useState(false);
-    return (_jsxs("div", { className: "relative flex flex-col gap-4", children: [_jsxs("div", { className: "relative w-full min-h-[400px]", onMouseEnter: () => setPointerInsideQuadro(true), onMouseLeave: () => setPointerInsideQuadro(false), children: [_jsx(PerfHUD, { canvas: canvas, pingMs: pingMs, connected: wsConnected }), _jsx(FabricBoard, { __onCanvas: setCanvas, __onZoneRect: createZoneFromRect, __zones: zones, __onCanvasJson: onCanvasJson, __applyRemoteJson: remoteCanvasJson, __onPointer: onPointer, __lockedObjectIds: lockedObjectIds.current, __isNewBoard: isNewBoard }, boardId ?? 'none'), _jsx(CursorsOverlay, { awareness: awarenessReady ? awareness : null, canvas: canvas, visible: pointerInsideQuadro }), _jsx(TextFormatToolbar, { canvas: canvas }), _jsx(ShapeFormatToolbar, { canvas: canvas })] }), _jsx("div", { className: "w-full overflow-x-auto overflow-y-hidden pb-2 px-4", children: _jsxs("div", { className: "flex gap-4 min-w-max", children: [_jsx("div", { className: "flex-shrink-0 w-[280px]", children: _jsx(TemplatesPanel, { canvas: canvas, onApplied: () => { if (canvas)
+    return (_jsxs("div", { className: "relative flex flex-col gap-4", children: [_jsxs("div", { className: "relative w-full min-h-[400px]", onMouseEnter: () => setPointerInsideQuadro(true), onMouseLeave: () => setPointerInsideQuadro(false), children: [_jsx(PerfHUD, { canvas: canvas, pingMs: pingMs, connected: wsConnected }), _jsx(FabricBoard, { __onCanvas: setCanvas, __onZoneRect: createZoneFromRect, __zones: zones, __onCanvasJson: onCanvasJson, __applyRemoteJson: remoteCanvasJson, __onPointer: onPointer, __lockedObjectIds: lockedObjectIds.current, __isNewBoard: isNewBoard, __onSaveToApi: boardId && token ? saveCanvasToApi : undefined }, boardId ?? 'none'), _jsx(CursorsOverlay, { awareness: awarenessReady ? awareness : null, canvas: canvas, visible: pointerInsideQuadro }), _jsx(TextFormatToolbar, { canvas: canvas }), _jsx(ShapeFormatToolbar, { canvas: canvas })] }), _jsx("div", { className: "w-full overflow-x-auto overflow-y-hidden pb-2 px-4", children: _jsxs("div", { className: "flex gap-4 min-w-max", children: [_jsx("div", { className: "flex-shrink-0 w-[280px]", children: _jsx(TemplatesPanel, { canvas: canvas, onApplied: () => { if (canvas)
                                     yCanvas.set('json', canvas.toDatalessJSON()); } }) }), _jsx("div", { className: "flex-shrink-0 w-[280px]", children: _jsx(ExportPanel, { canvas: canvas }) }), _jsx("div", { className: "flex-shrink-0 w-[280px]", children: _jsx(ReviewPanel, { boardId: boardId ?? '', canvas: canvas, onApplied: () => { if (canvas)
                                     yCanvas.set('json', canvas.toDatalessJSON()); } }) }), _jsx("div", { className: "flex-shrink-0 w-[280px]", children: _jsx(SuggestionComposer, { boardId: boardId ?? '', zoneId: selectedZoneId ?? null, canvas: canvas, enabled: !!boardId, onSubmitted: () => { } }) }), _jsx("div", { className: "flex-shrink-0 w-[520px] min-w-[520px]", children: _jsx(ZoneManager, { boardId: boardId ?? '', zones: zones, selectedZoneId: selectedZoneId, onSelect: setSelectedZoneId, onRefresh: refreshZones, onDelete: deleteZone }) }), _jsx("div", { className: "flex-shrink-0 w-[280px]", children: _jsx(ZoneSuggestPanel, { objects: extractObjectBoxes(), onApply: applySuggestions }) })] }) })] }));
 }

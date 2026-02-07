@@ -22,7 +22,7 @@ function isTextEditing(obj) {
     }
     return false;
 }
-export function FabricBoard({ className, __onCanvas, __onZoneRect, __zones, __onCanvasJson, __applyRemoteJson, __onPointer, __lockedObjectIds, __isNewBoard }) {
+export function FabricBoard({ className, __onCanvas, __onZoneRect, __zones, __onCanvasJson, __applyRemoteJson, __onPointer, __lockedObjectIds, __isNewBoard, __onSaveToApi }) {
     const hostRef = useRef(null);
     const canvasElRef = useRef(null);
     const [tool, setTool] = useState('select');
@@ -185,10 +185,11 @@ export function FabricBoard({ className, __onCanvas, __onZoneRect, __zones, __on
                 if (o.type !== 'ArrowLine' || (!o.__fromId && !o.__toId))
                     return;
                 const line = o;
-                let x1 = line.x1 ?? 0;
-                let y1 = line.y1 ?? 0;
-                let x2 = line.x2 ?? 0;
-                let y2 = line.y2 ?? 0;
+                const p = line.calcLinePoints?.() ?? { x1: 0, y1: 0, x2: 0, y2: 0 };
+                let x1 = p.x1;
+                let y1 = p.y1;
+                let x2 = p.x2;
+                let y2 = p.y2;
                 if (o.__fromId === oid) {
                     x1 = center.x;
                     y1 = center.y;
@@ -197,7 +198,7 @@ export function FabricBoard({ className, __onCanvas, __onZoneRect, __zones, __on
                     x2 = center.x;
                     y2 = center.y;
                 }
-                line.set({ x1, y1, x2, y2 });
+                line.set({ points: [new fabric.Point(x1, y1), new fabric.Point(x2, y2)] });
                 line.setCoords();
             });
             c.requestRenderAll();
@@ -697,14 +698,17 @@ export function FabricBoard({ className, __onCanvas, __onZoneRect, __zones, __on
         const c = canvasRef.current;
         if (!c)
             return;
+        const canvasJson = c.toDatalessJSON();
         const doc = {
             version: 1,
             createdAt: docRef.current?.createdAt ?? nowISO(),
             updatedAt: nowISO(),
-            canvas: c.toDatalessJSON(),
+            canvas: canvasJson,
         };
         saveDoc(doc);
         docRef.current = doc;
+        if (__onSaveToApi)
+            await __onSaveToApi(canvasJson);
     }
     async function doLoad() {
         const c = canvasRef.current;

@@ -6,7 +6,7 @@ import { redis } from './redis.js';
 import { prisma } from './db.js';
 import { inc } from './observability/metrics.js';
 
-import { createRoom, encodeSyncStep1, handleMessage, type YRoom } from './collab/yjs-room.js';
+import { createRoom, encodeSyncStep2, handleMessage, type YRoom } from './collab/yjs-room.js';
 import { lockObject, unlockObject, getObjectLock, lockZone, unlockZone, getZoneLock } from './collab/locks.js';
 import { setSocketIO } from './socket-emitter.js';
 
@@ -97,10 +97,10 @@ export function createSocketServer(httpServer: HttpServer) {
       await redis.expire(key, 60 * 10);
       io.to(roomName).emit('presence:update', { boardId, onlineCount: await redis.scard(key) });
 
-      // Yjs: enviar sync step1 inicial
+      // Yjs: enviar SyncStep2 (estado completo) para o cliente recém-conectado receber o quadro imediatamente
       const room = getRoom(boardId);
-      const step1 = encodeSyncStep1(room.doc);
-      socket.emit('yjs:message', step1);
+      const step2 = encodeSyncStep2(room.doc);
+      socket.emit('yjs:message', Array.from(step2));
 
       // Awareness: set local state on server (client também manda)
       socket.emit('board:joined', { boardId });
