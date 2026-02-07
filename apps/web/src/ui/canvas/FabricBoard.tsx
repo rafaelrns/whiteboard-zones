@@ -606,6 +606,8 @@ export function FabricBoard({ className, __onCanvas, __onZoneRect, __zones, __on
       }
     };
 
+    const STEP = 8; // pixels para mover com setas (alinhado ao grid)
+
     // keyboard shortcuts
     const key = (e: KeyboardEvent) => {
       const hist = historyRef.current;
@@ -613,6 +615,30 @@ export function FabricBoard({ className, __onCanvas, __onZoneRect, __zones, __on
 
       const isMac = navigator.platform.toLowerCase().includes('mac');
       const mod = isMac ? e.metaKey : e.ctrlKey;
+
+      // setas direcionais — mover objetos selecionados (exceto quando editando texto ou em input)
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+        const target = e.target as HTMLElement;
+        const isInput = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
+        if (isInput) return; // não interceptar quando usuário está em campo de formulário
+        const c = canvasRef.current;
+        const active = c.getActiveObject();
+        if (!active) return;
+        if (isTextEditing(active)) return; // deixa o Textbox tratar
+        e.preventDefault();
+        const dx = e.key === 'ArrowLeft' ? -STEP : e.key === 'ArrowRight' ? STEP : 0;
+        const dy = e.key === 'ArrowUp' ? -STEP : e.key === 'ArrowDown' ? STEP : 0;
+        const objs = c.getActiveObjects();
+        objs.forEach((o: fabric.FabricObject) => {
+          o.set({ left: (o.left ?? 0) + dx, top: (o.top ?? 0) + dy });
+          o.setCoords();
+          updateLinkedArrows(o);
+        });
+        hist.pushSnapshot();
+        c.requestRenderAll();
+        emitJsonDebounced();
+        return;
+      }
 
       // undo/redo
       if (mod && e.key.toLowerCase() === 'z' && !e.shiftKey) {
