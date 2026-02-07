@@ -12,6 +12,7 @@ COPY prisma ./prisma
 RUN pnpm install --frozen-lockfile
 
 FROM deps AS build
+RUN apk add --no-cache openssl
 RUN pnpm exec prisma generate --schema prisma/schema.prisma
 RUN pnpm turbo run build --filter=@zones/api
 
