@@ -1,0 +1,6 @@
+{
+  "framework": "vite",
+  "buildCommand": "pnpm -C ../.. install --frozen-lockfile && pnpm -C ../.. turbo run build --filter=web",
+  "outputDirectory": "dist",
+  "installCommand": "pnpm -C ../.. install --frozen-lockfile"
+}

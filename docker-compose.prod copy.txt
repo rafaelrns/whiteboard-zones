@@ -1,0 +1,38 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DB: whiteboard
+    ports: ["5432:5432"]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment:
+      PORT: 3001
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/whiteboard
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: dev-secret-change-me
+      CORS_ORIGIN: http://localhost:8080
+      LOG_LEVEL: info
+    depends_on: [postgres, redis]
+    ports: ["3001:3001"]
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    depends_on: [api]
+    ports: ["8080:80"]
+
+volumes:
+  pgdata:

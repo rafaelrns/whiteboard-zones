@@ -1,0 +1,4 @@
+
+> @zones/collaboration-core@0.0.0 build /Users/nascimento/Documents/whiteboard-zones/packages/collaboration-core
+> tsc -p tsconfig.json --noEmit
+

@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "resolveJsonModule": true,
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": [
+        "apps/shared/src/*"
+      ],
+      "@ui/*": [
+        "packages/ui-components/src/*"
+      ],
+      "@canvas/*": [
+        "packages/canvas-engine/src/*"
+      ],
+      "@collab/*": [
+        "packages/collaboration-core/src/*"
+      ]
+    }
+  }
+}

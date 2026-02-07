@@ -1,0 +1,4 @@
+
+> @zones/shared@0.0.0 build /Users/nascimento/Documents/whiteboard-zones/apps/shared
+> tsc -p tsconfig.json --noEmit
+

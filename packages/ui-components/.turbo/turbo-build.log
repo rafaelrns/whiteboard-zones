@@ -1,0 +1,4 @@
+
+> @zones/ui-components@0.0.0 build /Users/nascimento/Documents/whiteboard-zones/packages/ui-components
+> tsc -p tsconfig.json --noEmit
+

@@ -1,0 +1,4 @@
+
+> @zones/api@0.0.0 build /Users/nascimento/Documents/whiteboard-zones/apps/api
+> tsc -p tsconfig.json
+

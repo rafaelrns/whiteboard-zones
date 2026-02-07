@@ -1,0 +1,25 @@
+config:
+  target: "ws://localhost:3001"
+  phases:
+    - duration: 60
+      arrivalRate: 10
+  engines:
+    socketio-v3: {}
+  socketio:
+    auth:
+      token: "{{ token }}"
+scenarios:
+  - name: "connect and join demo board"
+    engine: socketio-v3
+    flow:
+      - emit:
+          channel: "board:join"
+          data:
+            boardId: "{{ boardId }}"
+      - think: 2
+      - loop:
+          - emit:
+              channel: "client:pong"
+              data: {}
+          - think: 1
+        count: 10

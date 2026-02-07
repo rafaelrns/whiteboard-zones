@@ -1,0 +1,4 @@
+
+> @zones/canvas-engine@0.0.0 build /Users/nascimento/Documents/whiteboard-zones/packages/canvas-engine
+> tsc -p tsconfig.json --noEmit
+

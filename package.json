@@ -1,0 +1,39 @@
+{
+  "name": "whiteboard-zones",
+  "private": true,
+  "packageManager": "pnpm@9.12.2",
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "prisma"
+  ],
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "test": "turbo test",
+    "format": "prettier -w .",
+    "prepare": "husky",
+    "prisma:generate": "cd prisma && PRISMA_GENERATE_SKIP_AUTOINSTALL=1 pnpm exec prisma generate",
+    "seed": "pnpm --filter @zones/api seed",
+    "prisma:migrate": "pnpm --filter @zones/api prisma:migrate",
+    "prisma:studio": "pnpm --filter @zones/api prisma:studio",
+    "loadtest:socket": "artillery run tests/load/socket-yjs.yml"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.9.1",
+    "artillery": "^2.0.20",
+    "eslint": "^9.9.1",
+    "husky": "^9.1.6",
+    "lint-staged": "^15.2.10",
+    "prettier": "^3.3.3",
+    "prisma": "5.22.0",
+    "turbo": "^2.1.2",
+    "typescript": "^5.6.2"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,json,md,yml,yaml}": [
+      "prettier -w"
+    ]
+  }
+}

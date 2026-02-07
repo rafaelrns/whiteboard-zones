@@ -1,0 +1,186 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.pnpm/@prisma+client@5.22.0_prisma@5.22.0/node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  owner
+  editor
+  reviewer
+  viewer
+}
+
+enum ZoneType {
+  FREE_EDIT
+  LOCKED_ZONE
+  REVIEW_REQUIRED
+  READ_ONLY
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String?  // null quando user vem via OAuth
+  role      Role     @default(editor)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ownedBoards        Board[]              @relation("BoardOwner")
+  versions           BoardVersion[]
+  queueItems         EditQueueItem[]
+  suggestionsAuthored Suggestion[]       @relation("SuggestionAuthor")
+  suggestionsDecided  Suggestion[]       @relation("SuggestionDecider")
+  suggestionComments SuggestionComment[]
+  notifications      Notification[]
+  feedback           Feedback[]
+}
+
+model Board {
+  id        String   @id @default(uuid())
+  name      String
+  ownerId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner      User     @relation("BoardOwner", fields: [ownerId], references: [id])
+  zones      Zone[]
+  versions   BoardVersion[]
+  invites    Invite[]
+  suggestions Suggestion[]
+  feedback   Feedback[]
+}
+
+model Zone {
+  id        String   @id @default(uuid())
+  boardId   String
+  type      ZoneType
+  name      String
+  rectX     Float
+  rectY     Float
+  rectW     Float
+  rectH     Float
+  rules     Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  board       Board            @relation(fields: [boardId], references: [id])
+  permissions ZonePermission[]
+  queue       EditQueueItem[]
+}
+
+model BoardVersion {
+  id          String   @id @default(uuid())
+  boardId     String
+  createdById String
+  label       String
+  snapshot    Json
+  createdAt   DateTime @default(now())
+
+  board   Board @relation(fields: [boardId], references: [id])
+  creator User  @relation(fields: [createdById], references: [id])
+}
+
+model ZonePermission {
+  id         String  @id @default(uuid())
+  zoneId     String
+  role       Role
+  canView    Boolean @default(true)
+  canEdit    Boolean @default(false)
+  canSuggest Boolean @default(false)
+  canApprove Boolean @default(false)
+
+  zone Zone @relation(fields: [zoneId], references: [id])
+
+  @@unique([zoneId, role])
+}
+
+model EditQueueItem {
+  id        String   @id @default(uuid())
+  zoneId    String
+  userId    String
+  position  Int
+  createdAt DateTime @default(now())
+
+  zone Zone @relation(fields: [zoneId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([zoneId, position])
+}
+
+model Invite {
+  id         String   @id @default(uuid())
+  boardId    String
+  email      String
+  role       Role
+  token      String   @unique
+  expiresAt  DateTime
+  acceptedAt DateTime?
+  createdAt  DateTime @default(now())
+
+  board Board @relation(fields: [boardId], references: [id])
+
+  @@index([boardId, email])
+}
+
+
+model Suggestion {
+  id          String   @id @default(cuid())
+  boardId     String
+  zoneId      String?
+  authorId    String
+  status      String   @default("PENDING") // PENDING | APPROVED | REJECTED
+  title       String
+  message     String?
+  objectsJson Json
+  createdAt   DateTime @default(now())
+  decidedAt   DateTime?
+  decidedById String?
+
+  board   Board @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  author  User  @relation("SuggestionAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  decidedBy User? @relation("SuggestionDecider", fields: [decidedById], references: [id])
+
+  comments SuggestionComment[]
+}
+
+model SuggestionComment {
+  id           String   @id @default(cuid())
+  suggestionId String
+  authorId     String
+  body         String
+  createdAt    DateTime @default(now())
+
+  suggestion Suggestion @relation(fields: [suggestionId], references: [id], onDelete: Cascade)
+  author     User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String
+  payload   Json
+  readAt    DateTime?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+
+model Feedback {
+  id        String   @id @default(cuid())
+  userId    String?
+  boardId   String?
+  kind      String   @default("GENERAL") // GENERAL | BUG | IDEA
+  message   String
+  meta      Json?
+  createdAt DateTime @default(now())
+
+  user  User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
+  board Board? @relation(fields: [boardId], references: [id], onDelete: SetNull)
+}

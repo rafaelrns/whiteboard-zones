@@ -1,0 +1,160 @@
+openapi: 3.0.3
+info:
+  title: Zonas Colaborativas API
+  version: 0.1.0
+servers:
+  - url: http://localhost:3001
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: OK
+
+  /auth/register:
+    post:
+      summary: Register (credentials)
+      responses:
+        '200': { description: OK }
+
+  /auth/login:
+    post:
+      summary: Login (credentials)
+      responses:
+        '200': { description: OK }
+
+  /boards:
+    get:
+      summary: List boards (owner)
+      responses:
+        '200': { description: OK }
+    post:
+      summary: Create board
+      responses:
+        '201': { description: Created }
+
+  /boards/{boardId}/zones:
+    get:
+      summary: List zones
+      parameters:
+        - in: path
+          name: boardId
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: OK }
+    post:
+      summary: Create zone
+      parameters:
+        - in: path
+          name: boardId
+          required: true
+          schema: { type: string }
+      responses:
+        '201': { description: Created }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+
+
+  /boards/{boardId}/zones/{zoneId}:
+    patch:
+      summary: Update zone
+      parameters:
+        - in: path
+          name: boardId
+          required: true
+          schema: { type: string }
+        - in: path
+          name: zoneId
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: OK }
+    delete:
+      summary: Delete zone
+      parameters:
+        - in: path
+          name: boardId
+          required: true
+          schema: { type: string }
+        - in: path
+          name: zoneId
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: OK }
+
+  /boards/demo:
+    get:
+      summary: Get or create demo board for current user
+      responses:
+        '200': { description: OK }
+
+
+  /boards/{boardId}/suggestions:
+    get:
+      summary: List suggestions
+      parameters:
+        - in: path
+          name: boardId
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: OK }
+    post:
+      summary: Create suggestion
+      parameters:
+        - in: path
+          name: boardId
+          required: true
+          schema: { type: string }
+      responses:
+        '201': { description: Created }
+
+  /boards/{boardId}/suggestions/{suggestionId}:
+    get:
+      summary: Get suggestion details (with comments)
+      parameters:
+        - in: path
+          name: boardId
+          required: true
+          schema: { type: string }
+        - in: path
+          name: suggestionId
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: OK }
+
+  /boards/{boardId}/suggestions/{suggestionId}/decision:
+    post:
+      summary: Approve/Reject suggestion
+      parameters:
+        - in: path
+          name: boardId
+          required: true
+          schema: { type: string }
+        - in: path
+          name: suggestionId
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: OK }
+
+  /notifications:
+    get:
+      summary: List notifications for current user
+      responses:
+        '200': { description: OK }
+
+
+  /feedback:
+    post:
+      summary: Send feedback (optional auth)
+      responses:
+        '201': { description: Created }
