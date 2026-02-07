@@ -31,5 +31,5 @@
 ```bash
 docker compose -f docker-compose.prod.yml up --build
 ```
-Web: http://localhost:8080  
+Web: http://localhost:8088  
 API: http://localhost:3001/health

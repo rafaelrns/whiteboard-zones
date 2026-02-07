@@ -7,7 +7,7 @@ Arquivos necessários para subir o whiteboard-zones em um servidor com **Nginx**
 | Arquivo | Descrição |
 |---------|-----------|
 | `nginx-whiteboard-zones.conf` | Nginx HTTP → redireciona para HTTPS + certbot |
-| `nginx-whiteboard-zones-ssl.conf` | Nginx HTTPS (proxy para web:8080 e api:3001) |
+| `nginx-whiteboard-zones-ssl.conf` | Nginx HTTPS (proxy para web:8088 e api:3001) |
 | `nginx-whiteboard-zones-http-only.conf` | Nginx HTTP apenas (staging ou SSL externo) |
 | `.env.prod.example` | Template de variáveis de ambiente |
 | `deploy.sh` | Script para build e subir os containers |
@@ -65,7 +65,7 @@ Isso sobe:
 - **postgres** (porta 5432 interna)
 - **redis** (porta 6379 interna)
 - **api** (porta 3001 → nginx faz proxy de /api)
-- **web** (porta 8080 → nginx faz proxy de /)
+- **web** (porta 8088 → nginx faz proxy de /)
 
 ### 4. Configurar o Nginx
 
@@ -109,12 +109,12 @@ sudo certbot renew --dry-run   # testar
 
 | Serviço | Porta interna | Porta exposta |
 |---------|---------------|---------------|
-| Web (nginx) | 80 | 8080 |
+| Web (nginx) | 80 | 8088 |
 | API | 3001 | 3001 |
 | Postgres | 5432 | - |
 | Redis | 6379 | - |
 
-O Nginx do host escuta em 80/443 e faz proxy para 8080 (web) e 3001 (api).
+O Nginx do host escuta em 80/443 e faz proxy para 8088 (web) e 3001 (api).
 
 ## Comandos úteis
 

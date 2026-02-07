@@ -27,5 +27,5 @@ docker compose -f docker-compose.prod.yml ps
 
 echo ""
 echo "=== Deploy concluído. ==="
-echo "Web: http://127.0.0.1:8080 (ou via nginx)"
+echo "Web: http://127.0.0.1:8088 (ou via nginx)"
 echo "API: http://127.0.0.1:3001/health"
