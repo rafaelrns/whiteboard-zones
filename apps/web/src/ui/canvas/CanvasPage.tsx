@@ -376,7 +376,7 @@ export function CanvasPage({ initialBoardId, onBoardLoaded, isNewBoard }: Canvas
         <button
           type="button"
           onClick={toggleFullscreen}
-          className="absolute right-3 top-3 z-40 rounded-xl border border-slate-200 bg-white/90 px-3 py-2 text-sm font-medium text-slate-700 shadow-sm backdrop-blur hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+          className="absolute right-3 bottom-28 z-40 rounded-xl border border-slate-200 bg-white/90 px-3 py-2 text-sm font-medium text-slate-700 shadow-sm backdrop-blur hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
           title={isFullscreen ? 'Sair da tela cheia' : 'Tela cheia'}
           aria-label={isFullscreen ? 'Sair da tela cheia' : 'Tela cheia'}
         >
