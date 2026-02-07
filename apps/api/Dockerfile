@@ -16,6 +16,7 @@ RUN pnpm exec prisma generate --schema prisma/schema.prisma
 RUN pnpm turbo run build --filter=@zones/api
 
 FROM base AS runner
+RUN apk add --no-cache wget openssl
 ENV NODE_ENV=production
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules

@@ -32,6 +32,8 @@ services:
       DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/whiteboard}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379}
       JWT_SECRET: ${JWT_SECRET}
+      AUTH_SECRET: ${AUTH_SECRET:-${JWT_SECRET}}
+      APP_URL: ${APP_URL:-${CORS_ORIGIN:-https://all.tickello.com.br}}
       CORS_ORIGIN: ${CORS_ORIGIN:-https://all.tickello.com.br}
       LOG_LEVEL: ${LOG_LEVEL:-info}
     depends_on:
@@ -43,10 +45,11 @@ services:
       - "3001:3001"
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:3001/health | grep -q 'ok'"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3001/health | grep -q '\"ok\"' || exit 1"]
       interval: 10s
-      timeout: 5s
+      timeout: 10s
       retries: 10
+      start_period: 40s
 
   web:
     build:
