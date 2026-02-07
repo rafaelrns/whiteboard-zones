@@ -21,9 +21,6 @@ coverage
 !.env.example
 !**/.env.example
 
-# Documentação (opcional)
-docs/
-
 # Outros
 .DS_Store
 *.log
