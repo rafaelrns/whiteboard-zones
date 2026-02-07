@@ -13,6 +13,7 @@ COPY prisma ./prisma
 RUN pnpm install --frozen-lockfile
 
 FROM deps AS build
+RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 RUN pnpm exec prisma generate --schema prisma/schema.prisma
 RUN pnpm turbo run build --filter=@zones/api
 
