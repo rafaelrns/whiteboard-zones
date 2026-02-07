@@ -53,9 +53,6 @@ services:
       context: .
       dockerfile: apps/web/Dockerfile
       args:
-        # se você quiser build-time args, mas no seu caso o Vite usa env no build
-        # então garanta que VITE_API_URL esteja no ambiente ao buildar
-        # (compose passa env no build apenas com "args", por isso recomendo: build com .env já setado e rebuild)
         VITE_API_URL: ${VITE_API_URL:-https://all.tickello.com.br/api}
     environment:
       # nginx serve estático; variável aqui não muda o build já feito

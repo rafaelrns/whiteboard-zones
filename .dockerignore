@@ -1,0 +1,29 @@
+# Dependencies e build outputs
+node_modules
+**/node_modules
+dist
+**/dist
+build
+**/build
+.turbo
+**/.turbo
+coverage
+
+# Git e IDE
+.git
+.gitignore
+*.md
+!README.md
+
+# Ambiente e secrets
+.env
+.env.*
+!.env.example
+!**/.env.example
+
+# Documentação (opcional)
+docs/
+
+# Outros
+.DS_Store
+*.log
