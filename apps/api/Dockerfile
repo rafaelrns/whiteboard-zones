@@ -14,8 +14,7 @@ RUN pnpm install --frozen-lockfile
 
 FROM deps AS build
 RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
-ENV PRISMA_GENERATE_SKIP_AUTOINSTALL=1
-RUN pnpm exec prisma generate --schema prisma/schema.prisma
+RUN cd prisma && pnpm exec prisma generate --schema schema.prisma
 RUN pnpm turbo run build --filter=@zones/api
 
 FROM base AS runner
