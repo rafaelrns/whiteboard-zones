@@ -125,6 +125,23 @@ export function App() {
     setOpenTabs((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
+  const boardIdForShare = currentBoardId ?? routeBoardId ?? null;
+  const activeBoardId = routeBoardId ?? currentBoardId ?? null;
+
+  const handleBoardLoaded = useCallback((id: string, name: string) => {
+    addTab(id, name);
+  }, [addTab]);
+
+  const handleCloseTab = useCallback((e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    removeTab(id);
+    if (activeBoardId === id) {
+      const remaining = openTabs.filter((t) => t.id !== id);
+      const next = remaining[remaining.length - 1];
+      navigate(next ? `/board/${next.id}` : '/', { replace: true });
+    }
+  }, [activeBoardId, openTabs, removeTab, navigate]);
+
   function openNewBoardModal() {
     setNewBoardName('');
     setNewBoardModalOpen(true);
@@ -175,23 +192,6 @@ export function App() {
       </div>
     );
   }
-
-  const boardIdForShare = currentBoardId ?? routeBoardId ?? null;
-  const activeBoardId = routeBoardId ?? currentBoardId ?? null;
-
-  const handleBoardLoaded = useCallback((id: string, name: string) => {
-    addTab(id, name);
-  }, [addTab]);
-
-  const handleCloseTab = useCallback((e: React.MouseEvent, id: string) => {
-    e.stopPropagation();
-    removeTab(id);
-    if (activeBoardId === id) {
-      const remaining = openTabs.filter((t) => t.id !== id);
-      const next = remaining[remaining.length - 1];
-      navigate(next ? `/board/${next.id}` : '/', { replace: true });
-    }
-  }, [activeBoardId, openTabs, removeTab, navigate]);
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
