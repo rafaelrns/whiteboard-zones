@@ -1,6 +1,7 @@
 # syntax=docker/dockerfile:1
 # Build context: raiz do monorepo
-FROM node:20-alpine AS base
+# Usa Debian (slim) em vez de Alpine — Prisma tem melhor compatibilidade com OpenSSL
+FROM node:20-slim AS base
 WORKDIR /app
 RUN corepack enable
 
@@ -12,12 +13,11 @@ COPY prisma ./prisma
 RUN pnpm install --frozen-lockfile
 
 FROM deps AS build
-RUN apk add --no-cache openssl
 RUN pnpm exec prisma generate --schema prisma/schema.prisma
 RUN pnpm turbo run build --filter=@zones/api
 
 FROM base AS runner
-RUN apk add --no-cache wget openssl
+RUN apt-get update && apt-get install -y --no-install-recommends wget ca-certificates && rm -rf /var/lib/apt/lists/*
 ENV NODE_ENV=production
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
