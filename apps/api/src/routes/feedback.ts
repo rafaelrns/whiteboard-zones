@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { Prisma } from '@prisma/client';
 import { prisma } from '../db';
 import { requireAuthOptional, AuthedRequestOptional } from '../auth/middleware';
 import { CreateFeedbackRequest } from '@zones/shared';
@@ -15,7 +16,7 @@ feedbackRouter.post('/', requireAuthOptional, async (req: AuthedRequestOptional,
       boardId: parsed.data.boardId ?? null,
       kind: parsed.data.kind,
       message: parsed.data.message,
-      meta: parsed.data.meta ?? null,
+      meta: parsed.data.meta ?? Prisma.DbNull,
     },
   });
 
