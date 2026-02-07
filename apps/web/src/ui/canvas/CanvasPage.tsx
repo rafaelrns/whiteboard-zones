@@ -358,25 +358,32 @@ export function CanvasPage({ initialBoardId, onBoardLoaded, isNewBoard }: Canvas
     return () => document.removeEventListener('fullscreenchange', onFullscreenChange);
   }, []);
 
+  useEffect(() => {
+    if (!isFullscreen) return;
+    const t = setTimeout(() => window.dispatchEvent(new Event('resize')), 100);
+    return () => clearTimeout(t);
+  }, [isFullscreen]);
+
   return (
     <div className="relative flex flex-col gap-4">
       {/* Quadro em largura total */}
       <div
         ref={quadroRef}
-        className="relative w-full min-h-[400px]"
+        className={`relative flex w-full min-h-[400px] flex-col ${isFullscreen ? 'min-h-screen min-w-screen' : ''}`}
         onMouseEnter={() => setPointerInsideQuadro(true)}
         onMouseLeave={() => setPointerInsideQuadro(false)}
       >
         <button
           type="button"
           onClick={toggleFullscreen}
-          className="absolute left-3 top-3 z-40 rounded-xl border border-slate-200 bg-white/90 px-3 py-2 text-sm font-medium text-slate-700 shadow-sm backdrop-blur hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+          className="absolute right-3 top-3 z-40 rounded-xl border border-slate-200 bg-white/90 px-3 py-2 text-sm font-medium text-slate-700 shadow-sm backdrop-blur hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
           title={isFullscreen ? 'Sair da tela cheia' : 'Tela cheia'}
           aria-label={isFullscreen ? 'Sair da tela cheia' : 'Tela cheia'}
         >
           {isFullscreen ? '⤡ Sair' : '⛶ Tela cheia'}
         </button>
         <PerfHUD canvas={canvas} pingMs={pingMs} connected={wsConnected} />
+        <div className={isFullscreen ? 'flex min-h-0 flex-1' : ''}>
         <FabricBoard
           key={boardId ?? 'none'}
           __onCanvas={setCanvas}
@@ -388,6 +395,7 @@ export function CanvasPage({ initialBoardId, onBoardLoaded, isNewBoard }: Canvas
           __lockedObjectIds={lockedObjectIds.current}
           __isNewBoard={isNewBoard}
           __onSaveToApi={boardId && token ? saveCanvasToApi : undefined}
+          __isFullscreen={isFullscreen}
         />
         <CursorsOverlay
           awareness={awarenessReady ? (awareness as any) : null}
@@ -396,6 +404,7 @@ export function CanvasPage({ initialBoardId, onBoardLoaded, isNewBoard }: Canvas
         />
         <TextFormatToolbar canvas={canvas} />
         <ShapeFormatToolbar canvas={canvas} />
+        </div>
       </div>
 
       {/* Menu de cards abaixo do quadro com scroll horizontal */}

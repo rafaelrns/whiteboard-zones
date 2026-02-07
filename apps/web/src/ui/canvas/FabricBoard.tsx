@@ -27,6 +27,8 @@ type Props = {
   __isNewBoard?: boolean;
   /** Callback para salvar canvas na API (permite trabalhar em qualquer lugar) */
   __onSaveToApi?: (canvasJson: any) => Promise<void>;
+  /** Modo tela cheia — área do quadro absorve toda a tela */
+  __isFullscreen?: boolean;
 };
 
 function nowISO() {
@@ -45,7 +47,7 @@ function isTextEditing(obj: fabric.Object | null): boolean {
   return false;
 }
 
-export function FabricBoard({ className, __onCanvas, __onZoneRect, __zones, __onCanvasJson, __applyRemoteJson, __onPointer, __lockedObjectIds, __isNewBoard, __onSaveToApi }: Props) {
+export function FabricBoard({ className, __onCanvas, __onZoneRect, __zones, __onCanvasJson, __applyRemoteJson, __onPointer, __lockedObjectIds, __isNewBoard, __onSaveToApi, __isFullscreen }: Props) {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const canvasElRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -812,7 +814,7 @@ export function FabricBoard({ className, __onCanvas, __onZoneRect, __zones, __on
 
   return (
     <div
-      className={clsx('relative w-full', className)}
+      className={clsx('relative w-full', __isFullscreen && 'flex min-h-0 flex-1 flex-col', className)}
       onMouseEnter={() => {
         pointerInsideCanvasRef.current = true;
         setIsInsideCanvas(true);
@@ -832,7 +834,8 @@ export function FabricBoard({ className, __onCanvas, __onZoneRect, __zones, __on
       {/* Moldura do quadro: borda e sombra que destacam quando o mouse está dentro */}
       <div
         className={clsx(
-          'relative h-[540px] w-full rounded-2xl transition-all duration-200',
+          'relative w-full rounded-2xl transition-all duration-200',
+          __isFullscreen ? 'flex min-h-0 flex-1' : 'h-[540px]',
           isInsideCanvas
             ? 'border-2 border-indigo-500 shadow-[0_0_0_3px_rgba(99,102,241,0.25),inset_0_0_24px_rgba(99,102,241,0.06)] dark:border-indigo-400 dark:shadow-[0_0_0_3px_rgba(99,102,241,0.3),inset_0_0_24px_rgba(99,102,241,0.08)]'
             : 'border-2 border-slate-300 shadow-md dark:border-slate-600 dark:shadow-slate-900/50',
