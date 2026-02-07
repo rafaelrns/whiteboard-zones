@@ -13,6 +13,10 @@ const Env = z.object({
   REDIS_URL: z.string().default('redis://localhost:6379'),
   AUTH_SECRET: z.string().default('replace-me-with-random'),
   APP_URL: z.string().default('http://localhost:3000'),
+  /** Token da API MailerSend para envio de emails (opcional; se ausente, emails não são enviados) */
+  MAILERSEND_API_TOKEN: z.string().optional(),
+  /** Email remetente verificado no MailerSend (ex: noreply@seudominio.com) */
+  MAILERSEND_FROM_EMAIL: z.string().optional(),
 });
 
 export const env = Env.parse(process.env);

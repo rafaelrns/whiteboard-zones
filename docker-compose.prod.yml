@@ -36,6 +36,8 @@ services:
       APP_URL: ${APP_URL:-${CORS_ORIGIN:-https://all.tickello.com.br}}
       CORS_ORIGIN: ${CORS_ORIGIN:-https://all.tickello.com.br}
       LOG_LEVEL: ${LOG_LEVEL:-info}
+      MAILERSEND_API_TOKEN: ${MAILERSEND_API_TOKEN:-}
+      MAILERSEND_FROM_EMAIL: ${MAILERSEND_FROM_EMAIL:-}
     depends_on:
       postgres:
         condition: service_healthy

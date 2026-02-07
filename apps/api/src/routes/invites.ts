@@ -4,6 +4,7 @@ import { prisma } from '../db.js';
 import { requireAuth, AuthedRequest } from '../auth/middleware.js';
 import { env } from '../env.js';
 import { emitToUser, emitToBoard } from '../socket-emitter.js';
+import { sendEmail } from '../email/mailersend.js';
 
 export const invitesRouter = Router({ mergeParams: true });
 
@@ -73,6 +74,20 @@ invitesRouter.post('/', requireAuth, async (req: AuthedRequest, res) => {
   }
 
   const inviteUrl = `${env.APP_URL}/invite/accept?token=${inv.token}`;
+
+  // Enviar email de convite via MailerSend (se configurado)
+  sendEmail({
+    to: { email: targetEmail },
+    subject: `${board.owner.name} convidou você para o quadro "${board.name}"`,
+    html: `
+      <p>Olá,</p>
+      <p><strong>${board.owner.name}</strong> convidou você para colaborar no quadro <strong>${board.name}</strong> como ${role}.</p>
+      <p><a href="${inviteUrl}" style="display:inline-block;padding:12px 24px;background:#4f46e5;color:#fff;text-decoration:none;border-radius:8px;">Aceitar convite</a></p>
+      <p>Este link expira em 7 dias. Se não foi você que solicitou, pode ignorar este email.</p>
+      <p>— Whiteboard Zones</p>
+    `,
+  }).catch((err) => console.warn('[Invite] Falha ao enviar email:', err));
+
   return res.status(201).json({ invite: inv, inviteUrl });
 });
 
