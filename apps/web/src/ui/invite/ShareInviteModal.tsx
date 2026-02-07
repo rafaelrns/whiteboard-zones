@@ -31,6 +31,7 @@ export function ShareInviteModal({
   onClose: () => void;
 }) {
   const token = useAppStore((s) => s.token);
+  const inviteListRefreshTrigger = useAppStore((s) => s.inviteListRefreshTrigger);
   const [mode, setMode] = useState<'user' | 'email'>('user');
   const [userQuery, setUserQuery] = useState('');
   const [userResults, setUserResults] = useState<UserItem[]>([]);
@@ -61,6 +62,10 @@ export function ShareInviteModal({
     setUserQuery('');
     refreshList();
   }, [open, token, boardId, refreshList]);
+
+  useEffect(() => {
+    if (inviteListRefreshTrigger > 0 && open && boardId) refreshList();
+  }, [inviteListRefreshTrigger, open, boardId, refreshList]);
 
   useEffect(() => {
     if (!token || userQuery.length < 2) {

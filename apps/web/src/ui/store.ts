@@ -11,14 +11,18 @@ type State = {
   token?: string;
   user?: AuthUser;
   notifications: NotificationItem[];
-  /** Número de usuários no board atual (atualizado pelo CanvasPage ao receber presence:update) */
+  /** Incrementa quando notif:new chega via socket — NotificationCenter reage */
+  notifRefreshTrigger: number;
+  /** Incrementa quando invite:accepted chega — ShareInviteModal reage */
+  inviteListRefreshTrigger: number;
   boardOnlineCount: number | null;
-  /** Board atual (para compartilhar/convites) */
   currentBoardId: string | null;
   setTheme: (t: Theme) => void;
   setAuth: (token: string, user: AuthUser) => void;
   clearAuth: () => void;
   setNotifications: (n: NotificationItem[]) => void;
+  triggerNotifRefresh: () => void;
+  triggerInviteListRefresh: () => void;
   setBoardOnlineCount: (n: number | null) => void;
   setCurrentBoardId: (id: string | null) => void;
 };
@@ -41,9 +45,13 @@ export const useAppStore = create<State>((set) => ({
   token: loadJSON<string>(TOKEN_KEY),
   user: loadJSON<AuthUser>(USER_KEY),
   notifications: [],
+  notifRefreshTrigger: 0,
+  inviteListRefreshTrigger: 0,
   boardOnlineCount: null,
   currentBoardId: null,
   setTheme: (theme) => set({ theme }),
+  triggerNotifRefresh: () => set((s) => ({ notifRefreshTrigger: s.notifRefreshTrigger + 1 })),
+  triggerInviteListRefresh: () => set((s) => ({ inviteListRefreshTrigger: s.inviteListRefreshTrigger + 1 })),
   setBoardOnlineCount: (n) => set({ boardOnlineCount: n }),
   setCurrentBoardId: (id) => set({ currentBoardId: id }),
   setAuth: (token, user) => {

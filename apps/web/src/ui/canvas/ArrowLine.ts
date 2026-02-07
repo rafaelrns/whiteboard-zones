@@ -96,9 +96,11 @@ export class ArrowLine extends fabric.Line {
   }
 
   override toObject(propertiesToInclude?: any): any {
-    const obj = super.toObject(propertiesToInclude ?? []) as Record<string, unknown>;
+    const obj = super.toObject(['__fromId', '__toId', ...(propertiesToInclude ?? [])]) as Record<string, unknown>;
     obj.arrowType = this.arrowType;
     obj.type = ArrowLine.type;
+    if ((this as any).__fromId) obj.__fromId = (this as any).__fromId;
+    if ((this as any).__toId) obj.__toId = (this as any).__toId;
     return obj;
   }
 

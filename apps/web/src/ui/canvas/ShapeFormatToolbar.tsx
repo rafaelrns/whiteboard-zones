@@ -88,6 +88,7 @@ export function ShapeFormatToolbar({ canvas }: { canvas: fabric.Canvas | null })
     setFill(f);
     setStroke(s);
     setStrokeWidth(sw);
+    canvas.fire('object:modified', { target: obj });
     canvas.requestRenderAll();
   }
 

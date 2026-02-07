@@ -26,7 +26,7 @@ export function App() {
     /** Modal para nome do novo quadro */
     const [newBoardModalOpen, setNewBoardModalOpen] = useState(false);
     const [newBoardName, setNewBoardName] = useState('');
-    const { theme, setTheme, token, user, clearAuth, boardOnlineCount, currentBoardId } = useAppStore();
+    const { theme, setTheme, token, user, clearAuth, boardOnlineCount, currentBoardId, triggerNotifRefresh, triggerInviteListRefresh } = useAppStore();
     const boardIdForAccess = currentBoardId ?? routeBoardId ?? null;
     useEffect(() => {
         if (!token && routeBoardId)
@@ -50,6 +50,8 @@ export function App() {
                 console.warn('[Socket] connect_error:', err.message);
             });
             s.on('server:ping', () => s?.emit('client:pong'));
+            s.on('notif:new', () => triggerNotifRefresh());
+            s.on('invite:accepted', () => triggerInviteListRefresh());
         }, 50);
         return () => {
             clearTimeout(t);
@@ -117,6 +119,20 @@ export function App() {
     const removeTab = useCallback((id) => {
         setOpenTabs((prev) => prev.filter((t) => t.id !== id));
     }, []);
+    const boardIdForShare = currentBoardId ?? routeBoardId ?? null;
+    const activeBoardId = routeBoardId ?? currentBoardId ?? null;
+    const handleBoardLoaded = useCallback((id, name) => {
+        addTab(id, name);
+    }, [addTab]);
+    const handleCloseTab = useCallback((e, id) => {
+        e.stopPropagation();
+        removeTab(id);
+        if (activeBoardId === id) {
+            const remaining = openTabs.filter((t) => t.id !== id);
+            const next = remaining[remaining.length - 1];
+            navigate(next ? `/board/${next.id}` : '/', { replace: true });
+        }
+    }, [activeBoardId, openTabs, removeTab, navigate]);
     function openNewBoardModal() {
         setNewBoardName('');
         setNewBoardModalOpen(true);
@@ -150,20 +166,6 @@ export function App() {
     if (!token || !user) {
         return (_jsxs("div", { className: "min-h-screen bg-slate-50 dark:bg-slate-950", children: [_jsx("header", { className: "border-b border-slate-200/70 dark:border-slate-800", children: _jsx("div", { className: "mx-auto flex max-w-6xl items-center justify-between px-4 py-3", children: _jsxs("div", { className: "flex items-center gap-2", children: [_jsx("div", { className: "h-8 w-8 rounded-xl bg-slate-900 dark:bg-slate-50" }), _jsxs("div", { className: "leading-tight", children: [_jsx("div", { className: "text-sm font-semibold", children: "Zonas Colaborativas" }), _jsx("div", { className: "text-xs text-slate-500 dark:text-slate-400", children: "Quadro branco com colabora\u00E7\u00E3o por zonas" })] })] }) }) }), _jsx("main", { className: "mx-auto max-w-md px-4 py-12", children: _jsx(LoginCard, {}) })] }));
     }
-    const boardIdForShare = currentBoardId ?? routeBoardId ?? null;
-    const activeBoardId = routeBoardId ?? currentBoardId ?? null;
-    const handleBoardLoaded = useCallback((id, name) => {
-        addTab(id, name);
-    }, [addTab]);
-    const handleCloseTab = useCallback((e, id) => {
-        e.stopPropagation();
-        removeTab(id);
-        if (activeBoardId === id) {
-            const remaining = openTabs.filter((t) => t.id !== id);
-            const next = remaining[remaining.length - 1];
-            navigate(next ? `/board/${next.id}` : '/', { replace: true });
-        }
-    }, [activeBoardId, openTabs, removeTab, navigate]);
     return (_jsxs("div", { className: "min-h-screen bg-slate-50 dark:bg-slate-950", children: [_jsx("header", { className: "relative z-40 border-b border-slate-200/70 bg-slate-50/95 backdrop-blur dark:border-slate-800 dark:bg-slate-950/95", children: _jsxs("div", { className: "mx-auto flex max-w-full items-center justify-between px-4 py-3", children: [_jsxs("div", { className: "flex items-center gap-2", children: [_jsx("div", { className: "h-8 w-8 rounded-xl bg-slate-900 dark:bg-slate-50" }), _jsxs("div", { className: "leading-tight", children: [_jsx("div", { className: "text-sm font-semibold", children: "Zonas Colaborativas" }), _jsx("div", { className: "text-xs text-slate-500 dark:text-slate-400", children: boardOnlineCount != null ? `${boardOnlineCount} online` : socket ? 'Conectado' : 'Conectando…' })] })] }), _jsxs("div", { className: "flex items-center gap-2", children: [_jsxs("div", { className: "relative", children: [_jsxs("button", { type: "button", onClick: () => {
                                                 setBoardsOpen((o) => !o);
                                                 if (!boardsOpen)

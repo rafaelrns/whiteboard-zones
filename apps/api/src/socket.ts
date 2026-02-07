@@ -8,6 +8,7 @@ import { inc } from './observability/metrics.js';
 
 import { createRoom, encodeSyncStep1, handleMessage, type YRoom } from './collab/yjs-room.js';
 import { lockObject, unlockObject, getObjectLock, lockZone, unlockZone, getZoneLock } from './collab/locks.js';
+import { setSocketIO } from './socket-emitter.js';
 
 type AuthedSocket = Parameters<Parameters<Server['use']>[0]>[0] & {
   data: { userId?: string; role?: string; name?: string };
@@ -74,6 +75,8 @@ export function createSocketServer(httpServer: HttpServer) {
       return next(new Error('auth_error'));
     }
   });
+
+  setSocketIO(io);
 
   io.on('connection', (socket: AuthedSocket) => {
     inc('socket_connections_total');

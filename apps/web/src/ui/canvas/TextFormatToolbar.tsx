@@ -89,6 +89,7 @@ export function TextFormatToolbar({ canvas }: { canvas: fabric.Canvas | null }) 
       setFontStyle(fi);
       setFontFamily(ff);
       setFillColor(fc);
+      canvas.fire('object:modified', { target: active });
     }
     canvas.requestRenderAll();
   }

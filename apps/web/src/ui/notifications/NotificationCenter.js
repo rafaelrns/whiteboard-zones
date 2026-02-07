@@ -7,6 +7,7 @@ export function NotificationCenter() {
     const token = useAppStore((s) => s.token);
     const items = useAppStore((s) => s.notifications);
     const setNotifications = useAppStore((s) => s.setNotifications);
+    const notifRefreshTrigger = useAppStore((s) => s.notifRefreshTrigger);
     const navigate = useNavigate();
     const [open, setOpen] = useState(false);
     const [processing, setProcessing] = useState(null);
@@ -30,6 +31,10 @@ export function NotificationCenter() {
         if (open)
             refresh();
     }, [open, refresh]);
+    useEffect(() => {
+        if (notifRefreshTrigger > 0 && token)
+            refresh();
+    }, [notifRefreshTrigger, token, refresh]);
     async function handleAcceptInvite(n) {
         const payload = n.payload;
         if (!payload?.inviteToken || !payload?.boardId)

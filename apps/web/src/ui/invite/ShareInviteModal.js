@@ -10,6 +10,7 @@ const ROLES = [
 ];
 export function ShareInviteModal({ boardId, open, onClose, }) {
     const token = useAppStore((s) => s.token);
+    const inviteListRefreshTrigger = useAppStore((s) => s.inviteListRefreshTrigger);
     const [mode, setMode] = useState('user');
     const [userQuery, setUserQuery] = useState('');
     const [userResults, setUserResults] = useState([]);
@@ -40,6 +41,10 @@ export function ShareInviteModal({ boardId, open, onClose, }) {
         setUserQuery('');
         refreshList();
     }, [open, token, boardId, refreshList]);
+    useEffect(() => {
+        if (inviteListRefreshTrigger > 0 && open && boardId)
+            refreshList();
+    }, [inviteListRefreshTrigger, open, boardId, refreshList]);
     useEffect(() => {
         if (!token || userQuery.length < 2) {
             setUserResults([]);

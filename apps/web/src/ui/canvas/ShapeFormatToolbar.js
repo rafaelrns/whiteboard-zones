@@ -95,6 +95,7 @@ export function ShapeFormatToolbar({ canvas }) {
         setFill(f);
         setStroke(s);
         setStrokeWidth(sw);
+        canvas.fire('object:modified', { target: obj });
         canvas.requestRenderAll();
     }
     const shape = getShapeFromActive(active);

@@ -3,6 +3,7 @@ import crypto from 'node:crypto';
 import { prisma } from '../db.js';
 import { requireAuth, AuthedRequest } from '../auth/middleware.js';
 import { env } from '../env.js';
+import { emitToUser, emitToBoard } from '../socket-emitter.js';
 
 export const invitesRouter = Router({ mergeParams: true });
 
@@ -68,6 +69,7 @@ invitesRouter.post('/', requireAuth, async (req: AuthedRequest, res) => {
         },
       },
     });
+    emitToUser(targetUserId, 'notif:new', {});
   }
 
   const inviteUrl = `${env.APP_URL}/invite/accept?token=${inv.token}`;
@@ -78,13 +80,35 @@ invitesRouter.get('/accept', async (req, res) => {
   const t = String(req.query.token ?? '');
   if (!t) return res.status(400).json({ error: 'missing_token' });
 
-  const inv = await prisma.invite.findUnique({ where: { token: t } });
+  const inv = await prisma.invite.findUnique({
+    where: { token: t },
+    include: { board: { select: { id: true, ownerId: true, name: true } } },
+  });
   if (!inv) return res.status(404).json({ error: 'not_found' });
   if (inv.acceptedAt) return res.status(409).json({ error: 'already_accepted' });
   if (inv.expiresAt.getTime() < Date.now()) return res.status(410).json({ error: 'expired' });
 
-  // MVP: marca como aceito (associação de usuário ao board entra na Etapa 3+ com permissões robustas)
   const accepted = await prisma.invite.update({ where: { token: t }, data: { acceptedAt: new Date() } });
+
+  const ownerId = inv.board.ownerId;
+  const boardId = inv.boardId;
+  const boardName = inv.board.name;
+
+  emitToBoard(boardId, 'invite:accepted', { boardId, email: inv.email });
+  emitToUser(ownerId, 'invite:accepted', { boardId, email: inv.email });
+
+  const owner = await prisma.user.findUnique({ where: { id: ownerId }, select: { id: true } });
+  if (owner) {
+    await prisma.notification.create({
+      data: {
+        userId: owner.id,
+        type: 'INVITE_ACCEPTED',
+        payload: { boardId, boardName, email: inv.email },
+      },
+    });
+    emitToUser(owner.id, 'notif:new', {});
+  }
+
   return res.json({ ok: true, invite: accepted, boardId: accepted.boardId });
 });
 

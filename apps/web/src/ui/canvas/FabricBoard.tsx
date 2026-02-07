@@ -64,6 +64,8 @@ export function FabricBoard({ className, __onCanvas, __onZoneRect, __zones, __on
   const downRef = useRef<{ x: number; y: number } | null>(null);
   const tempRef = useRef<fabric.Object | null>(null);
   const zoneTempRef = useRef<fabric.Rect | null>(null);
+  /** Seta: origem aguardando destino (click origem → click destino) */
+  const arrowOriginRef = useRef<{ type: 'object'; obj: fabric.Object; cx: number; cy: number } | { type: 'point'; x: number; y: number } | null>(null);
 
   const docRef = useRef<CanvasDocument | null>(null);
   const syncTimerRef = useRef<number | null>(null);
@@ -187,11 +189,44 @@ export function FabricBoard({ className, __onCanvas, __onZoneRect, __zones, __on
       // Quadro existente: inicia vazio; o useEffect aplicará __applyRemoteJson quando o sync Yjs completar
     }
 
+    const ensureOid = (o: fabric.Object) => {
+      if (!(o as any).__oid) (o as any).__oid = `obj-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    };
+
     // history snapshots on object changes
     const push = () => historyRef.current?.pushSnapshot();
-    c.on('object:added', () => { push(); emitJsonDebounced(); });
-    c.on('object:modified', () => { push(); emitJsonDebounced(); });
+    c.on('object:added', (e: any) => {
+      ensureOid(e.target ?? e);
+      push();
+      emitJsonDebounced();
+    });
+    // Setas ligadas: atualizar extremidades quando objeto move
+    const updateLinkedArrows = (movedObj: fabric.Object) => {
+      const oid = (movedObj as any).__oid;
+      if (!oid) return;
+      const center = movedObj.getCenterPoint();
+      c.getObjects().forEach((o: any) => {
+        if (o.type !== 'ArrowLine' || (!o.__fromId && !o.__toId)) return;
+        const line = o as fabric.Line;
+        const p = line.calcLinePoints?.() ?? { x1: 0, y1: 0, x2: 0, y2: 0 };
+        let x1 = p.x1; let y1 = p.y1; let x2 = p.x2; let y2 = p.y2;
+        if (o.__fromId === oid) { x1 = center.x; y1 = center.y; }
+        if (o.__toId === oid) { x2 = center.x; y2 = center.y; }
+        line.set({ points: [new fabric.Point(x1, y1), new fabric.Point(x2, y2)] } as any);
+        line.setCoords();
+      });
+      c.requestRenderAll();
+    };
+
+    c.on('object:modified', (e: any) => {
+      push();
+      emitJsonDebounced();
+      if (e.target) updateLinkedArrows(e.target);
+    });
     c.on('object:removed', () => { push(); emitJsonDebounced(); });
+    c.on('object:moving', (e: any) => {
+      if (e.target) updateLinkedArrows(e.target);
+    });
 
     // snap-to-grid (8px) on moving
     const snap = 8;
@@ -322,16 +357,46 @@ export function FabricBoard({ className, __onCanvas, __onZoneRect, __zones, __on
         tempRef.current = ln;
         c.add(ln);
       } else if (toolRef.current === 'arrow') {
-        // arrow created on mouse up (needs end)
-        const ln = new (fabric.Line as any)([pointer.x, pointer.y, pointer.x, pointer.y], {
-          stroke: '#111827',
-          strokeWidth: 2,
-          selectable: false,
-          evented: false,
-          opacity: 0.5,
-        });
-        tempRef.current = ln;
-        c.add(ln);
+        // Seta: clicar origem → clicar destino
+        const target = c.findTarget(ev) as fabric.Object | undefined;
+        const origin = arrowOriginRef.current;
+        const ensureOid = (o: fabric.Object) => {
+          if (!(o as any).__oid) (o as any).__oid = `obj-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        };
+        if (!origin) {
+          if (target && !(target as any).__zone) {
+            const center = target.getCenterPoint();
+            ensureOid(target);
+            arrowOriginRef.current = { type: 'object', obj: target, cx: center.x, cy: center.y };
+          } else {
+            arrowOriginRef.current = { type: 'point', x: pointer.x, y: pointer.y };
+          }
+          downRef.current = null;
+          return;
+        }
+        let fromX: number; let fromY: number;
+        if (origin.type === 'object') {
+          const c2 = origin.obj.getCenterPoint();
+          fromX = c2.x; fromY = c2.y;
+        } else { fromX = origin.x; fromY = origin.y; }
+        let toX: number; let toY: number;
+        if (target && !(target as any).__zone) {
+          const c2 = target.getCenterPoint();
+          toX = c2.x; toY = c2.y;
+          ensureOid(target);
+        } else { toX = pointer.x; toY = pointer.y; }
+        arrowOriginRef.current = null;
+        const arrow = makeArrow({ x: fromX, y: fromY }, { x: toX, y: toY }, arrowTypeRef.current);
+        if (origin.type === 'object' && target && !(target as any).__zone) {
+          (arrow as any).__fromId = (origin.obj as any).__oid;
+          (arrow as any).__toId = (target as any).__oid;
+        }
+        ensureOid(arrow);
+        c.add(arrow);
+        c.setActiveObject(arrow);
+        downRef.current = null;
+        tempRef.current = null;
+        return;
       } else if (toolRef.current === 'text') {
         const tb = new fabric.Textbox('', {
           left: pointer.x,
@@ -473,20 +538,6 @@ export function FabricBoard({ className, __onCanvas, __onZoneRect, __zones, __on
         return;
       }
 
-      if (toolRef.current === 'arrow') {
-        const down = downRef.current;
-        const temp = tempRef.current;
-        if (down && temp && temp instanceof fabric.Line) {
-          const p = c.getPointer(ev);
-          tempRef.current = null; // clear before remove to avoid double-processing
-          c.remove(temp);
-          const arrow = makeArrow(down, { x: p.x, y: p.y }, arrowTypeRef.current);
-          c.add(arrow);
-          c.setActiveObject(arrow);
-          c.requestRenderAll();
-        }
-      }
-
       downRef.current = null;
       tempRef.current = null;
     };
@@ -580,6 +631,38 @@ export function FabricBoard({ className, __onCanvas, __onZoneRect, __zones, __on
           active.forEach((o: fabric.FabricObject) => canvasRef.current?.remove(o));
           canvasRef.current?.discardActiveObject();
           canvasRef.current?.requestRenderAll();
+        }
+      }
+
+      // agrupar (Ctrl+G) e desagrupar (Ctrl+Shift+G)
+      if (mod && e.key.toLowerCase() === 'g') {
+        e.preventDefault();
+        const c = canvasRef.current;
+        if (!c) return;
+        const active = c.getActiveObject();
+        if (!active) return;
+        if (e.shiftKey) {
+          if (active instanceof fabric.Group || active.type === 'group') {
+            const g = active as fabric.Group;
+            if (typeof (g as any).ungroupOnCanvas === 'function') {
+              (g as any).ungroupOnCanvas();
+            } else {
+              const objs = g.getObjects();
+              c.remove(g);
+              objs.forEach((o) => c.add(o));
+              if (objs.length) c.setActiveObject(new fabric.ActiveSelection(objs, { canvas: c }));
+            }
+            c.requestRenderAll();
+          }
+        } else {
+          const objs = c.getActiveObjects();
+          if (objs.length >= 2) {
+            const group = new fabric.Group([...objs], { subTargetCheck: true });
+            c.remove(...objs);
+            c.add(group);
+            c.setActiveObject(group);
+            c.requestRenderAll();
+          }
         }
       }
     };

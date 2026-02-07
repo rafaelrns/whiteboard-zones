@@ -27,7 +27,7 @@ export function App() {
   const [newBoardModalOpen, setNewBoardModalOpen] = useState(false);
   const [newBoardName, setNewBoardName] = useState('');
 
-  const { theme, setTheme, token, user, clearAuth, boardOnlineCount, currentBoardId } = useAppStore();
+  const { theme, setTheme, token, user, clearAuth, boardOnlineCount, currentBoardId, triggerNotifRefresh, triggerInviteListRefresh } = useAppStore();
   const boardIdForAccess = currentBoardId ?? routeBoardId ?? null;
 
   useEffect(() => {
@@ -53,6 +53,8 @@ export function App() {
       console.warn('[Socket] connect_error:', err.message);
     });
     s.on('server:ping', () => s?.emit('client:pong'));
+    s.on('notif:new', () => triggerNotifRefresh());
+    s.on('invite:accepted', () => triggerInviteListRefresh());
     }, 50);
     return () => {
       clearTimeout(t);

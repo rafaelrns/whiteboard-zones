@@ -93,6 +93,7 @@ export function TextFormatToolbar({ canvas }) {
             setFontStyle(fi);
             setFontFamily(ff);
             setFillColor(fc);
+            canvas.fire('object:modified', { target: active });
         }
         canvas.requestRenderAll();
     }

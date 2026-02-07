@@ -14,6 +14,7 @@ export function NotificationCenter() {
   const token = useAppStore((s) => s.token);
   const items = useAppStore((s) => s.notifications);
   const setNotifications = useAppStore((s) => s.setNotifications);
+  const notifRefreshTrigger = useAppStore((s) => s.notifRefreshTrigger);
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [processing, setProcessing] = useState<string | null>(null);
@@ -36,6 +37,10 @@ export function NotificationCenter() {
   useEffect(() => {
     if (open) refresh();
   }, [open, refresh]);
+
+  useEffect(() => {
+    if (notifRefreshTrigger > 0 && token) refresh();
+  }, [notifRefreshTrigger, token, refresh]);
 
   async function handleAcceptInvite(n: NotificationItem) {
     const payload = n.payload as InvitePayload | undefined;
