@@ -1,4 +1,4 @@
-import { redis } from '../redis';
+import { redis } from '../redis.js';
 
 const OBJ_PREFIX = 'lock:obj:';
 const ZONE_PREFIX = 'lock:zone:';

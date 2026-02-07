@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { prisma } from '../db';
-import { requireAuth, AuthedRequest } from '../auth/middleware';
+import { prisma } from '../db.js';
+import { requireAuth, AuthedRequest } from '../auth/middleware.js';
 
 export const queueRouter = Router({ mergeParams: true });
 

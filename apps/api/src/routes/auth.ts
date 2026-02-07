@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
-import { prisma } from '../db';
-import { createSession, deleteSession } from '../auth/token';
+import { prisma } from '../db.js';
+import { createSession, deleteSession } from '../auth/token.js';
 import { LoginRequest, RegisterRequest } from '@zones/shared';
 
 export const authRouter = Router();

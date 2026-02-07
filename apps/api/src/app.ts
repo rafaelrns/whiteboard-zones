@@ -1,25 +1,25 @@
 import express from 'express';
 import pinoHttp from 'pino-http';
-import { logger } from './observability/logger';
-import { inc, snapshot } from './observability/metrics';
-import { applySecurity } from './security';
+import { logger } from './observability/logger.js';
+import { inc, snapshot } from './observability/metrics.js';
+import { applySecurity } from './security.js';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import swaggerUi from 'swagger-ui-express';
-import { env } from './env';
-import { loadOpenApiSpec } from './openapi';
+import { env } from './env.js';
+import { loadOpenApiSpec } from './openapi.js';
 
-import { authRouter } from './routes/auth';
-import { boardsRouter } from './routes/boards';
-import { boardsDemoRouter } from './routes/boards-demo';
-import { zonesRouter } from './routes/zones';
-import { suggestionsRouter } from './routes/suggestions';
-import { notificationsRouter } from './routes/notifications';
-import { feedbackRouter } from './routes/feedback';
-import { invitesRouter } from './routes/invites';
-import { queueRouter } from './routes/queue';
-import { usersRouter } from './routes/users';
-import { prisma } from './db';
+import { authRouter } from './routes/auth.js';
+import { boardsRouter } from './routes/boards.js';
+import { boardsDemoRouter } from './routes/boards-demo.js';
+import { zonesRouter } from './routes/zones.js';
+import { suggestionsRouter } from './routes/suggestions.js';
+import { notificationsRouter } from './routes/notifications.js';
+import { feedbackRouter } from './routes/feedback.js';
+import { invitesRouter } from './routes/invites.js';
+import { queueRouter } from './routes/queue.js';
+import { usersRouter } from './routes/users.js';
+import { prisma } from './db.js';
 
 export function createApp() {
   const app = express();

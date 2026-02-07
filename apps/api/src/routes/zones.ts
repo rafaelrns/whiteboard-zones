@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { prisma } from '../db';
+import { prisma } from '../db.js';
 import { CreateZoneRequest } from '@zones/shared';
-import { requireAuth, AuthedRequest } from '../auth/middleware';
+import { requireAuth, AuthedRequest } from '../auth/middleware.js';
 
 export const zonesRouter = Router({ mergeParams: true });
 

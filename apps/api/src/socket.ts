@@ -1,13 +1,13 @@
 import { Server as HttpServer } from 'node:http';
 import { Server } from 'socket.io';
-import { env } from './env';
-import { getSession } from './auth/token';
-import { redis } from './redis';
-import { prisma } from './db';
-import { inc } from './observability/metrics';
+import { env } from './env.js';
+import { getSession } from './auth/token.js';
+import { redis } from './redis.js';
+import { prisma } from './db.js';
+import { inc } from './observability/metrics.js';
 
-import { createRoom, encodeSyncStep1, handleMessage, type YRoom } from './collab/yjs-room';
-import { lockObject, unlockObject, getObjectLock, lockZone, unlockZone, getZoneLock } from './collab/locks';
+import { createRoom, encodeSyncStep1, handleMessage, type YRoom } from './collab/yjs-room.js';
+import { lockObject, unlockObject, getObjectLock, lockZone, unlockZone, getZoneLock } from './collab/locks.js';
 
 type AuthedSocket = Parameters<Parameters<Server['use']>[0]>[0] & {
   data: { userId?: string; role?: string; name?: string };

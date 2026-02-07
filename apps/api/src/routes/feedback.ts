@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { Prisma } from '@prisma/client';
-import { prisma } from '../db';
-import { requireAuthOptional, AuthedRequestOptional } from '../auth/middleware';
+import { prisma } from '../db.js';
+import { requireAuthOptional, AuthedRequestOptional } from '../auth/middleware.js';
 import { CreateFeedbackRequest } from '@zones/shared';
 
 export const feedbackRouter = Router();

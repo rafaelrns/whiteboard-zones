@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { redis } from '../redis';
+import { redis } from '../redis.js';
 
 const SESSION_PREFIX = 'session:';
 

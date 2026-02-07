@@ -1,6 +1,6 @@
 import request from 'supertest';
 import { describe, it, expect } from 'vitest';
-import { createApp } from './app';
+import { createApp } from './app.js';
 
 // Nota: teste smoke sem auth real (dependeria de Redis/DB).
 // Mantemos aqui apenas para garantir que a rota foi registrada.

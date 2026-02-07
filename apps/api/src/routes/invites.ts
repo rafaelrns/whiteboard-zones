@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import crypto from 'node:crypto';
-import { prisma } from '../db';
-import { requireAuth, AuthedRequest } from '../auth/middleware';
-import { env } from '../env';
+import { prisma } from '../db.js';
+import { requireAuth, AuthedRequest } from '../auth/middleware.js';
+import { env } from '../env.js';
 
 export const invitesRouter = Router({ mergeParams: true });
 

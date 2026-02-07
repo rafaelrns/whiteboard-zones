@@ -2,9 +2,9 @@
  * Seed para desenvolvimento: cria um usuário de teste.
  * Rodar: pnpm seed (na raiz) ou pnpm run seed (em apps/api)
  */
-import './load-env';
+import './load-env.js';
 import bcrypt from 'bcryptjs';
-import { prisma } from './db';
+import { prisma } from './db.js';
 
 const TEST_USER = {
   name: 'Usuário Teste',

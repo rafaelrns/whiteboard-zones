@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import { getSession } from './token';
-import { prisma } from '../db';
+import { getSession } from './token.js';
+import { prisma } from '../db.js';
 
 export type AuthedRequest = Request & { user?: { id: string; role: string; email: string; name: string } };
 
