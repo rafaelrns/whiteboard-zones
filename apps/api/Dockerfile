@@ -26,6 +26,7 @@ COPY --from=build /app/apps ./apps
 COPY --from=deps /app/packages ./packages
 COPY --from=deps /app/prisma ./prisma
 COPY --from=deps /app/package.json ./package.json
+COPY docs ./docs
 COPY apps/api/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 EXPOSE 3001
