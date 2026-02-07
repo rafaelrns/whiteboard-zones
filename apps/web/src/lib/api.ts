@@ -1,9 +1,28 @@
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
 
-/** URL base para o Socket.IO (mesmo host quando API_URL é relativo, ex. /api) */
-export const SOCKET_URL = API_URL.startsWith('/') ? '' : API_URL;
-/** Path do Socket.IO no servidor (quando usamos proxy, ex. /api/socket.io) */
-export const SOCKET_PATH = API_URL.startsWith('/') ? `${API_URL}/socket.io` : '/socket.io';
+/** URL base para o Socket.IO: apenas o origin (evita que /api vire namespace e cause "Invalid namespace") */
+function socketUrl(): string {
+  if (API_URL.startsWith('/')) return '';
+  try {
+    const u = new URL(API_URL);
+    return `${u.protocol}//${u.host}`;
+  } catch {
+    return API_URL;
+  }
+}
+/** Path do Socket.IO no servidor (ex: /api/socket.io quando API_URL é https://host/api) */
+function socketPath(): string {
+  if (API_URL.startsWith('/')) return `${API_URL}/socket.io`;
+  try {
+    const u = new URL(API_URL);
+    const p = u.pathname.replace(/\/$/, '') || '';
+    return p ? `${p}/socket.io` : '/socket.io';
+  } catch {
+    return '/socket.io';
+  }
+}
+export const SOCKET_URL = socketUrl();
+export const SOCKET_PATH = socketPath();
 
 export type ApiError = { error: string; issues?: unknown };
 
