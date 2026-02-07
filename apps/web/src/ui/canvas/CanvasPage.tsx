@@ -340,15 +340,42 @@ export function CanvasPage({ initialBoardId, onBoardLoaded, isNewBoard }: Canvas
   }, [canvas, boardId]);
 
   const [pointerInsideQuadro, setPointerInsideQuadro] = useState(false);
+  const quadroRef = useRef<HTMLDivElement>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  function toggleFullscreen() {
+    if (!quadroRef.current) return;
+    if (!document.fullscreenElement) {
+      quadroRef.current.requestFullscreen().then(() => setIsFullscreen(true)).catch(() => {});
+    } else {
+      document.exitFullscreen().then(() => setIsFullscreen(false)).catch(() => {});
+    }
+  }
+
+  useEffect(() => {
+    const onFullscreenChange = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', onFullscreenChange);
+  }, []);
 
   return (
     <div className="relative flex flex-col gap-4">
       {/* Quadro em largura total */}
       <div
+        ref={quadroRef}
         className="relative w-full min-h-[400px]"
         onMouseEnter={() => setPointerInsideQuadro(true)}
         onMouseLeave={() => setPointerInsideQuadro(false)}
       >
+        <button
+          type="button"
+          onClick={toggleFullscreen}
+          className="absolute left-3 top-3 z-40 rounded-xl border border-slate-200 bg-white/90 px-3 py-2 text-sm font-medium text-slate-700 shadow-sm backdrop-blur hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+          title={isFullscreen ? 'Sair da tela cheia' : 'Tela cheia'}
+          aria-label={isFullscreen ? 'Sair da tela cheia' : 'Tela cheia'}
+        >
+          {isFullscreen ? '⤡ Sair' : '⛶ Tela cheia'}
+        </button>
         <PerfHUD canvas={canvas} pingMs={pingMs} connected={wsConnected} />
         <FabricBoard
           key={boardId ?? 'none'}
