@@ -20,7 +20,7 @@ RUN apk add --no-cache wget openssl
 ENV NODE_ENV=production
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/apps ./apps
+COPY --from=build /app/apps ./apps
 COPY --from=deps /app/packages ./packages
 COPY --from=deps /app/prisma ./prisma
 COPY --from=deps /app/package.json ./package.json
